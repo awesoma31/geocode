@@ -1,8 +1,8 @@
 from dadata import Dadata
 
-token = "83ee29b164712c40a3104fb10813bde0457e23f6"
-secret = "b8f8e51f7213f8f741899ad691c68fce1b16b1de"
-for i in range(9000):
+token = "5cd6e640d13d4a5d8aabcc06954ba984ffad0171"
+secret = "656e076f47f6982f6639a1c1000426b9bc511941"
+for i in range(1):
     ddt = Dadata(token, secret)
-    result = ddt.clean("address", "карламарксадом23северодвинск")
+    result = ddt.clean("address", "карла маркса дом 23 северодвинск")
     print(result)
