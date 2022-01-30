@@ -18,23 +18,28 @@ try:
             """
             SELECT address
             FROM all_oks_b_h
+            ORDER BY RANDOM()
+            LIMIT 10000
             """
         )
-        pattern = r'\b(?:д|дер|деревня|г|гор|город|c|село|п|пос|поселок)\b\.*\s+[а-яА-Я]+'
-        count = 1
 
-        for i in range(10000):
+        loc_pattern = r'\b(?:д|дер|деревня|г|гор|город|с|село|п|пос|поселок|рп|ж/д_ст)\b\.*\s+[а-яА-Я\-]+'
+        street_pattern = r'\b(?:ул|улица|у|пер|переулок|наб|набережная|набер|ш|шоссе|пр|проспект|пр\-кт)\b\.*\s*[а-яА-Я]+\.*[а-яА-Я]+'
+        building_pattern = r'\b(?:д|дом)\b\.*\s*\d+\s*\w{0,1}'
+
+        count = 1
+        for i in range(1000):
             print(count)
             count += 1
-            loc = cur.fetchone()
-            loc = loc[0]
-            print(loc)
-            loc = re.findall(pattern, loc)
-            if len(loc) != 0:
-                loc = loc[0]
-                print(loc)
+            address = cur.fetchone()
+            address = address[0]
+            print(address)
+            loc = re.findall(loc_pattern, address)
+            street = re.findall(street_pattern, address)
+            building = re.findall(building_pattern, address)
+            print(loc, street, building)
 
-        # location = geolocator.geocode(rec[0])
+        # location = geolocator.geocode('Березник, ул. П.Виноградова, д. 172')
         # print((location.latitude, location.longitude))
         # print(location.raw)
 
