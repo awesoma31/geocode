@@ -1,16 +1,8 @@
-# This is a sample Python script.
+from dadata import Dadata
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+token = "5cd6e640d13d4a5d8aabcc06954ba984ffad0171"
+secret = "656e076f47f6982f6639a1c1000426b9bc511941"
+for i in range(1):
+    ddt = Dadata(token, secret)
+    result = ddt.clean("address", "карла маркса дом 23 северодвинск")
+    print(result)
