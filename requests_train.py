@@ -1,7 +1,14 @@
+import psycopg2
+import re
 from geopy.geocoders import Nominatim
 
 geolocator = Nominatim(user_agent="user_agent")
-location = geolocator.geocode("першинская д27")
-print(location.loc)
-print((location.latitude, location.longitude))
-# print(location.raw)
+
+address = 'Кодино, ул. Набережная, д. 30'
+
+location = geolocator.geocode(address)
+
+lat = location.latitude
+lon = location.longitude
+print(lat, lon)
+

@@ -19,7 +19,7 @@ def check_random_addresses():
 
 
 geolocator = Nominatim(user_agent="user_agent")
-limit = 5
+limit = 10
 
 loc_pattern = r'\b(?:округ|окр|д|дер|деревня|г|гор|город|с|село|п|пос|поселок|проезд|рп|снт|СНТ)\b\.*\s*[а-яА-Я\-]+\d*\s*[а-яА-Я\-]*'
 street_pattern = r'\b(?:ул\.\sим\.s\проф|ул\.*\s*им|улица\sим|улица|ул|у|пер\.*\s*им|пер|переулок|наб\.\s*им|наб|набережная|набер|ш|шоссе|пр\.\sим|пр\-кт|пр|проспект|кв\-л|кв|квартал)\b\.*\s*[а-яА-Я\s\-]+\d*\.*\s*[а-яА-Я\-]+\d*\.*\s*[а-яА-Я\-]+\d*'
@@ -78,14 +78,14 @@ try:
                     else:
                         lat = location.latitude
                         lon = location.longitude
-                        print((lat, lon))
+                        print(lat, lon)
                         print('-----')
-                        print('SUCCESS')
+                        print('[GEOCODING SUCCESS]')
                         print('_______')
                 else:
                     loc = re.sub(loc_sub_pattern, r'', loc[-1])
                     building = re.sub(building_sub_pattern, r'', building[0])
-                    print(f'Workable data:\n{loc}, {building}\n')
+                    print(f'Workable data:\n\t{loc}, {building}\n')
 
                     # location = geolocator.geocode(f'{loc}, {street[-1]} {building[-1]}')
                     location = geolocator.geocode(f'{loc} {building}')
@@ -98,9 +98,13 @@ try:
                         lon = location.longitude
                         print(lat, lon)
                         print('-----')
-                        print('SUCCESS')
+                        print('[GEOCODING SUCCESS]')
                         print('_______')
                     # print(location.raw)
+            else:
+                print('-----')
+                print('[GEOCODING ERROR] NOT ENOUGH DATA')
+                print('_______')
 
         connection.commit()
         print('********')
