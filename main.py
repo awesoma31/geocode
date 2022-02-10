@@ -39,7 +39,9 @@ def clear_building(building):
 
 geolocator = Nominatim(user_agent="user_agent")
 
-limit = 10
+limit = 50
+count_1 = 0
+success_count = 0
 
 try:
     connection = psycopg2.connect(
@@ -50,110 +52,123 @@ try:
     )
     # connection.autocommit = True
 
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT address, cn
-            FROM all_oks_b
-            ORDER BY RANDOM()
-            LIMIT {limit}
-            """
-        )
+    cur = connection.cursor()
 
-        # check_random_addresses()
+    cur.execute(
+        f"""
+        SELECT address, cn
+        FROM all_oks_b
+        ORDER BY RANDOM()
+        LIMIT {limit}
+        """
+    )
 
-        count_1 = 0
-        success_count = 0
+    for i in range(limit):
+        count_1 += 1
+        print(count_1)
 
-        for i in range(limit):
-            count_1 += 1
-            print(count_1)
-
+        try:
             data = cur.fetchone()
-            address = data[0]
-            cn = data[1]
-            print(f'Initial address is:\n\t{address}\n')
-            # print(cn, type(cn))
+            print(data)
+        except psycopg2.ProgrammingError as e:
+            data = ('-', '-')
 
-            loc, street, building = transform_data(address)
-            print(f'Initial data:\n\t{loc}, {street}, {building}')
+        address = data[0]
+        cn = data[1]
+        print(f'Initial address is:\n\t{address}\n')
 
-            if len(loc) <= 0 or len(building) <= 0:
-                print('-----')
-                print('[GEOCODING ERROR] NOT ENOUGH DATA')
-                print('_______')
+        loc, street, building = transform_data(address)
+        print(f'Initial data:\n\t{loc}, {street}, {building}')
 
-            else:
-                if len(street) > 0:
-                    loc = clear_loc(loc)
-                    building = clear_building(building)
-                    print(f'Workable data:\n\t{loc}, {street[0]} {building}\n')
+        if len(loc) <= 0 or len(building) <= 0:
+            print('-----')
+            print('[GEOCODING ERROR] NOT ENOUGH DATA')
+            print('_______')
 
-                    location = geolocator.geocode(f'{loc}, {street[0]} {building}')
+        else:
+            if len(street) > 0:
+                loc = clear_loc(loc)
+                building = clear_building(building)
+                print(f'Workable data:\n\t{loc}, {street[0]} {building}\n')
 
-                    if location is None:
-                        print('[GEOCODING ERROR] Location type is None')
-                        print('_______')
-                    else:
-                        lat = location.latitude
-                        lon = location.longitude
-                        print(lat, lon)
-                        print('-----')
-                        print('[GEOCODING SUCCESS]')
-                        print('_______')
+                location = geolocator.geocode(f'{loc}, {street[0]} {building}', timeout=None)
 
-                        with connection.cursor() as cur:
-                            cur.execute(
-                                f"""
-                                UPDATE all_oks_b
-                                SET latitude = {lat}, longitude = {lon}
-                                WHERE cn = {"'" + cn + "'"}
-                                """
-                            )
-                            connection.commit()
-                        success_count += 1
+                if location is None:
+                    print('[GEOCODING ERROR] Location type is None')
+                    print('_______')
 
                 else:
-                    loc = clear_loc(loc)
-                    clear_building(building)
-                    print(f'Workable data:\n\t{loc}, {building}\n')
+                    lat = location.latitude
+                    lon = location.longitude
+                    print(lat, lon)
+                    print('-----')
+                    print('[GEOCODING SUCCESS]')
+                    print('_______')
 
-                    location = geolocator.geocode(f'{loc} {building}')
+                    cur1 = connection.cursor()
 
-                    if location is None:
-                        print(f'[GEOCODING ERROR] Location type is None')
-                        print('_______')
+                    cur1.execute(
+                        f"""
+                        UPDATE all_oks_b
+                        SET latitude = {lat}, longitude = {lon}
+                        WHERE cn = {"'" + cn + "'"}
+                        """
+                    )
 
-                    else:
-                        lat = location.latitude
-                        lon = location.longitude
-                        print(lat, lon)
-                        print('-----')
-                        print('[GEOCODING SUCCESS]')
-                        print('_______')
+                    cur1.close()
 
-                        with connection.cursor() as cur:
-                            cur.execute(
-                                f"""
-                                UPDATE all_oks_b
-                                SET latitude = {lat}, longitude = {lon}
-                                WHERE cn = {"'" + cn + "'"}
-                                """
-                            )
-                            connection.commit()
-                        success_count += 1
+                    connection.commit()
+                    success_count += 1
 
-        connection.commit()
+            else:
+                loc = clear_loc(loc)
+                building = clear_building(building)
+                print(f'Workable data:\n\t{loc}, {building}\n')
 
-        print('********')
-        print('INFO: [SUCCESSFULLY]')
+                location = geolocator.geocode(f'{loc} {building}', timeout=None)
+
+                if location is None:
+                    print(f'[GEOCODING ERROR] Location type is None')
+                    print('_______')
+
+                else:
+                    lat = location.latitude
+                    lon = location.longitude
+                    print(lat, lon)
+                    print('-----')
+                    print('[GEOCODING SUCCESS]')
+                    print('_______')
+
+                    cur2 = connection.cursor()
+
+                    cur2.execute(
+                        f"""
+                        UPDATE all_oks_b
+                        SET latitude = {lat}, longitude = {lon}
+                        WHERE cn = {"'" + cn + "'"}
+                        """
+                    )
+
+                    cur2.close()
+
+                    connection.commit()
+                    success_count += 1
+
+    connection.commit()
+    cur.close()
+
+    print('********')
+    print('INFO: [SUCCESSFULLY]')
 
 except Exception as error:
     print('********')
-    print("INFO: [Ошибка при работе с PostgreSQL]", error)
+    print("INFO: [Ошибка при работе с PostgreSQL]", error, type(error))
 
 finally:
     if connection:
         connection.close()
         print("INFO: [Соединение с PostgreSQL закрыто]")
-        print(f'INFO: Success issues {success_count}')
+        print(f'INFO: Success issues {success_count} from {limit} attempts')
+
+
+#         DEFAULT_SENTINEL
