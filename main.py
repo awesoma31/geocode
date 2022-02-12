@@ -39,8 +39,8 @@ def clear_building(building):
 
 geolocator = Nominatim(user_agent="user_agent")
 
-limit = 50
-count_1 = 0
+# limit = 5000
+count = 0
 success_count = 0
 
 try:
@@ -58,14 +58,15 @@ try:
         f"""
         SELECT address, cn
         FROM all_oks_b
-        ORDER BY RANDOM()
-        LIMIT {limit}
+        WHERE address SIMILAR TO '%(город|гор|г).*\s*Архангельск%'
+        ORDER BY id
         """
     )
+    data = True
 
-    for i in range(limit):
-        count_1 += 1
-        print(count_1)
+    while data:
+        count += 1
+        print(count)
 
         try:
             data = cur.fetchone()
@@ -84,6 +85,7 @@ try:
             print('-----')
             print('[GEOCODING ERROR] NOT ENOUGH DATA')
             print('_______')
+            pass
 
         else:
             if len(street) > 0:
@@ -96,6 +98,7 @@ try:
                 if location is None:
                     print('[GEOCODING ERROR] Location type is None')
                     print('_______')
+
 
                 else:
                     lat = location.latitude
@@ -131,6 +134,7 @@ try:
                     print(f'[GEOCODING ERROR] Location type is None')
                     print('_______')
 
+
                 else:
                     lat = location.latitude
                     lon = location.longitude
@@ -162,13 +166,13 @@ try:
 
 except Exception as error:
     print('********')
-    print("INFO: [Ошибка при работе с PostgreSQL]", error, type(error))
+    print("INFO: [Error while working with PostgreSQL]", error, type(error))
+
+except KeyboardInterrupt:
+    print('INFO: EXECUTION STOPPED')
 
 finally:
     if connection:
         connection.close()
-        print("INFO: [Соединение с PostgreSQL закрыто]")
-        print(f'INFO: Success issues {success_count} from {limit} attempts')
-
-
-#         DEFAULT_SENTINEL
+        print("INFO: [Connection with PostgreSQL closed]")
+        print(f'INFO: Success issues {success_count} from {count} attempts')
